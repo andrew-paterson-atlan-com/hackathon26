@@ -172,6 +172,6 @@ async function actCase(w, k, action) {
 }
 
 /* ---- opening beat ---- */
-fetch("/healthz").then(r => r.json()).then(h => { $("backend-chip").textContent = `backend: ${h.backend} · session ${SESSION}`; });
+fetch("/healthz").then(r => r.json()).then(h => { $("backend-chip").textContent = `backend: ${h.backend} · feed: ${h.feed} · session ${SESSION}`; });
 sysMsg(`Session started · ${fmtDate(new Date())} — Penny watches the stream and answers here.`);
 setTimeout(() => pennyMsg(`Morning. I’m watching all ten branches across six duties. Ask me anything — or click a <b>flagged case</b> in the rail and we’ll process it together right here.`), 500);

@@ -1,5 +1,6 @@
 fastapi>=0.115
 uvicorn[standard]>=0.30
 pyyaml>=6.0
+psycopg[binary]>=3.2   # finance_stream feed (app/feed.py)
 # PENNY_BACKEND=agent additionally needs the repo root requirements
 # (claude-agent-sdk, psycopg, ...) — see ../requirements.txt

@@ -20,15 +20,18 @@ def _pick_type() -> str:
     return "sale"
 
 
-async def run(inject_event: asyncio.Event) -> None:
+async def run(inject_event: asyncio.Event, ticker: bool = True) -> None:
+    """Case/candidate cycle for the funnel. `ticker=False` when the real
+    finance_stream feed (app/feed.py) owns the transaction ticker."""
     lap, idx, since = 0, 0, 0
     while True:
         await asyncio.sleep(1.1)
-        sid = random.choice(STORES)
-        bus.publish({"type": "ticker", "ts": time.time(), "branch": seeds.BRANCHES[sid],
-                     "store_id": sid, "txn": _pick_type(),
-                     "amount_cents": random.randint(800, 3500)})
-        store.bump(scanned=1)
+        if ticker:
+            sid = random.choice(STORES)
+            bus.publish({"type": "ticker", "ts": time.time(), "branch": seeds.BRANCHES[sid],
+                         "store_id": sid, "txn": _pick_type(),
+                         "amount_cents": random.randint(800, 3500)})
+            store.bump(scanned=1)
         since += 1
         if inject_event.is_set() or since >= random.randint(5, 8):
             inject_event.clear()

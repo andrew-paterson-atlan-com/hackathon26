@@ -19,7 +19,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import backends, bus, cases, simulator, store
+from . import backends, bus, cases, feed, simulator, store
 
 STATIC = pathlib.Path(__file__).parent / "static"
 app = FastAPI(title="Penny Console")
@@ -31,8 +31,12 @@ _inject = asyncio.Event()
 @app.on_event("startup")
 async def _startup():
     store.conn()  # create tables
+    live_feed = feed.enabled()
+    if live_feed:
+        asyncio.create_task(feed.run())          # real txns own the ticker
     if os.environ.get("SIMULATOR", "1") != "0":
-        asyncio.create_task(simulator.run(_inject))
+        # cases/candidates still simulated until the real scan loop lands
+        asyncio.create_task(simulator.run(_inject, ticker=not live_feed))
 
 
 @app.get("/")
@@ -42,7 +46,8 @@ async def index():
 
 @app.get("/healthz")
 async def healthz():
-    return {"ok": True, "backend": os.environ.get("PENNY_BACKEND", "sim")}
+    return {"ok": True, "backend": os.environ.get("PENNY_BACKEND", "sim"),
+            "feed": "stream" if feed.enabled() else "sim"}
 
 
 def _sse(event: dict) -> str:
